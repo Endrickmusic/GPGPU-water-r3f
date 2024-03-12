@@ -67,9 +67,10 @@ export default function initWater(){
       // uniforms[ 'mousePos' ].value.set( 10000, 10000 )
 
       gpuCompute.current.compute()
-      
+
       renderMat.current.uniforms.heightmap.value = gpuCompute.current.getCurrentRenderTarget( heightmapVariable.current ).texture
-      console.log(renderMat.current.uniforms)
+      uniforms.heightmap.value = gpuCompute.current.getCurrentRenderTarget( heightmapVariable.current ).texture
+      // console.log(uniforms.heightmap.value)
 
     })
   
@@ -108,7 +109,7 @@ export default function initWater(){
   
   function fillTexture( texture ) {
 
-    const waterMaxHeight = 0.3
+    const waterMaxHeight = 0.2
 
     function noise( x, y ) {
 
