@@ -1,21 +1,37 @@
 import { OrbitControls } from "@react-three/drei"
 import { useFrame, useThree } from "@react-three/fiber"
-import { useRef, useMemo } from "react"
+import { useRef, useMemo, useEffect } from "react"
 
 import vertexShader from "./shader/vertexShader.js"
 import fragmentShader from "./shader/fragmentShader.js"
 import { DoubleSide, Vector2 } from "three"
 
+import './RenderMaterial.jsx'
 
-export default function Shader(){
+// Texture width for simulation
+const WIDTH = 128
 
-    const meshRef = useRef();
+// Water size in system units
+const BOUNDS = 512
+
+export default function Water(){
+
+    const meshRef = useRef()
+    const renderMat = useRef()
+
+    useEffect(() => {
+    
+      // Defines
+      renderMat.current.defines.WIDTH = WIDTH.toFixed( 1 )
+      renderMat.current.defines.BOUNDS = BOUNDS.toFixed( 1 )
+    },[])
   
+
     useFrame((state) => {
       let time = state.clock.getElapsedTime()
   
       // start from 20 to skip first 20 seconds ( optional )
-      meshRef.current.material.uniforms.uTime.value = time
+      renderMat.current.uniforms.uTime.value = time
     
     })
   
@@ -38,14 +54,13 @@ export default function Shader(){
       <OrbitControls />    
       <mesh 
       ref={meshRef}
-      scale={[viewport.width, viewport.height, 1]}
+      scale={[1, 1, 1]}
       >
-          <planeGeometry args={[1, 1]} />
-          <shaderMaterial
-            uniforms={uniforms}
-            vertexShader={vertexShader}
-            fragmentShader={fragmentShader}
-            side={DoubleSide}
+          <planeGeometry args={[1, 1, 64, 64]} />
+          <renderMaterial
+            ref = {renderMat}
+            side = {DoubleSide}
+            wireframe = {true}
           />
         </mesh>
    </>
