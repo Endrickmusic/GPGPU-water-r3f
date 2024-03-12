@@ -5,8 +5,7 @@ import { DoubleSide, Vector2 } from "three"
 import { SimplexNoise } from 'three/addons/math/SimplexNoise.js'
 import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer.js'
 
-import vertexShader from "./shader/vertexShader.js"
-import fragmentShader from "./shader/fragmentShader.js"
+import heightmapFragmentShader from "./shader/heightmapFragmentShader.js"
 
 
 import './RenderMaterial.jsx'
@@ -16,6 +15,8 @@ const WIDTH = 128
 
 // Water size in system units
 const BOUNDS = 512
+
+const simplex = new SimplexNoise();
 
 export default function initWater(){
 
@@ -35,6 +36,10 @@ export default function initWater(){
       const heightmap0 = gpuCompute.createTexture()
 
       fillTexture( heightmap0 )
+
+      const heightmapVariable = gpuCompute.addVariable( 'heightmap', heightmapFragmentShader, heightmap0 )
+
+      gpuCompute.setVariableDependencies( heightmapVariable, [ heightmapVariable ] )
 
     },[])
   
