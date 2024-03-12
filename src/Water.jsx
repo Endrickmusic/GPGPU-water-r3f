@@ -22,34 +22,55 @@ export default function initWater(){
 
     const meshRef = useRef()
     const renderMat = useRef()
+    const gpuCompute = useRef()
+    const heightmapVariable = useRef()
 
-    useEffect((gl) => {
+    const { gl } = useThree()
+
+    useEffect(() => {
+
+      // Creates the gpu computation class and sets it up
     
+      gpuCompute.current = new GPUComputationRenderer( WIDTH, WIDTH, gl )
+
       // Defines
       renderMat.current.defines.WIDTH = WIDTH.toFixed( 1 )
       renderMat.current.defines.BOUNDS = BOUNDS.toFixed( 1 )
-      
-      // Creates the gpu computation class and sets it up
 
-			const gpuCompute = new GPUComputationRenderer( WIDTH, WIDTH, gl );
-
-      const heightmap0 = gpuCompute.createTexture()
+      const heightmap0 = gpuCompute.current.createTexture()
 
       fillTexture( heightmap0 )
 
-      const heightmapVariable = gpuCompute.addVariable( 'heightmap', heightmapFragmentShader, heightmap0 )
+      heightmapVariable.current = gpuCompute.current.addVariable( 'heightmap', heightmapFragmentShader, heightmap0 )
 
-      gpuCompute.setVariableDependencies( heightmapVariable, [ heightmapVariable ] )
+      gpuCompute.current.setVariableDependencies( heightmapVariable.current, [ heightmapVariable.current ] )
 
+      heightmapVariable.current.material.uniforms[ 'mousePos' ] = { value: new Vector2( 10000, 10000 ) };
+			heightmapVariable.current.material.uniforms[ 'mouseSize' ] = { value: 20.0 };
+			heightmapVariable.current.material.uniforms[ 'viscosityConstant' ] = { value: 0.98 };
+			heightmapVariable.current.material.uniforms[ 'heightCompensation' ] = { value: 0 };
+			heightmapVariable.current.material.defines.BOUNDS = BOUNDS.toFixed( 1 );
+
+      gpuCompute.current.init()
     },[])
   
 
     useFrame((state) => {
-      let time = state.clock.getElapsedTime()
-  
-      // start from 20 to skip first 20 seconds ( optional )
+      
+      const time = state.clock.getElapsedTime()
       renderMat.current.uniforms.uTime.value = time
-    
+      
+      const uniforms = heightmapVariable.current.material.uniforms
+
+      // console.log( uniforms )
+
+      // uniforms[ 'mousePos' ].value.set( 10000, 10000 )
+
+      gpuCompute.current.compute()
+      
+      renderMat.current.uniforms.heightmap.value = gpuCompute.current.getCurrentRenderTarget( heightmapVariable.current ).texture
+      console.log(renderMat.current.uniforms)
+
     })
   
       // Define the shader uniforms with memoization to optimize performance
@@ -87,7 +108,7 @@ export default function initWater(){
   
   function fillTexture( texture ) {
 
-    const waterMaxHeight = 10
+    const waterMaxHeight = 0.3
 
     function noise( x, y ) {
 
@@ -103,6 +124,27 @@ export default function initWater(){
       }
 
       return r
+
+    }
+
+    const pixels = texture.image.data;
+
+    let p = 0;
+    for ( let j = 0; j < WIDTH; j ++ ) {
+
+      for ( let i = 0; i < WIDTH; i ++ ) {
+
+        const x = i * 128 / WIDTH;
+        const y = j * 128 / WIDTH;
+
+        pixels[ p + 0 ] = noise( x, y );
+        pixels[ p + 1 ] = pixels[ p + 0 ];
+        pixels[ p + 2 ] = 0;
+        pixels[ p + 3 ] = 1;
+
+        p += 4;
+
+      }
 
     }
   }

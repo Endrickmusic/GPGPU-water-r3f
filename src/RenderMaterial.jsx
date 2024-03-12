@@ -3,7 +3,6 @@ import { extend } from "@react-three/fiber"
 
 const RenderMaterial = shaderMaterial(
     {
-        uPosition: null,
         uTime: 0,
         heightmap : null
     },
