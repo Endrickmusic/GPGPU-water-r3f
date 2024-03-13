@@ -25,12 +25,18 @@ export default function initWater(){
     const gpuCompute = useRef()
     const heightmapVariable = useRef()
 
-    const { gl } = useThree()
+    const { gl, size } = useThree()
+
+
+    const handleMouseMove = (event) =>{
+      
+      heightmapVariable.current.material.uniforms.mousePos.value.set(10000, 10000);
+
+    }
 
     useEffect(() => {
 
       // Creates the gpu computation class and sets it up
-    
       gpuCompute.current = new GPUComputationRenderer( WIDTH, WIDTH, gl )
 
       // Defines
@@ -47,7 +53,7 @@ export default function initWater(){
 
       heightmapVariable.current.material.uniforms[ 'mousePos' ] = { value: new Vector2( 10000, 10000 ) };
 			heightmapVariable.current.material.uniforms[ 'mouseSize' ] = { value: 20.0 };
-			heightmapVariable.current.material.uniforms[ 'viscosityConstant' ] = { value: 0.98 };
+			heightmapVariable.current.material.uniforms[ 'viscosityConstant' ] = { value: 0.999 };
 			heightmapVariable.current.material.uniforms[ 'heightCompensation' ] = { value: 0 };
 			heightmapVariable.current.material.defines.BOUNDS = BOUNDS.toFixed( 1 );
 
@@ -94,6 +100,7 @@ export default function initWater(){
       <mesh 
       ref={meshRef}
       scale={[1, 1, 1]}
+      onPointerMove={handleMouseMove}
       >
           <planeGeometry args={[1, 1, 64, 64]} />
           <renderMaterial
@@ -109,7 +116,7 @@ export default function initWater(){
   
   function fillTexture( texture ) {
 
-    const waterMaxHeight = 0.2
+    const waterMaxHeight = 0.05
 
     function noise( x, y ) {
 

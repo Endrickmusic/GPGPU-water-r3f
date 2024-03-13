@@ -64,7 +64,7 @@ const heightmapFragmentShader = `
 
 				// heightmapValue.y = heightmapValue.x + snoise(heightmapValue.xy) * 0.0016;
 				heightmapValue.y = heightmapValue.x;
-				heightmapValue.y += snoise(heightmapValue.xx) * 0.0035;
+				heightmapValue.y += snoise(heightmapValue.xx) * 0.000001;
 				heightmapValue.x = newHeight;
 
 				gl_FragColor = heightmapValue;
